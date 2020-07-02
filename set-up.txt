@@ -7,3 +7,11 @@ Add basic config & Conroller
 curl localhost:8090/hello                                                                        ✔  1735  17:19:03
  Server response 2020-07-02T17:19:11.477%
  
+Step3:
+Added REST controller & Service Layer
+
+Rest end points
+curl http://localhost:8090/api/v1/students
+
+
+Step4: Add docker image

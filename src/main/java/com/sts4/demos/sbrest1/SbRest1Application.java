@@ -3,7 +3,6 @@ package com.sts4.demos.sbrest1;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,6 +13,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -114,7 +114,7 @@ class InMemoryStudentService {
 		mockStudents = new ArrayList<>();
 
 		for (int i = 0; i < 100; i++) {
-			mockStudents.add(new Student(i, "fname" + i, "lname" + i, i, LocalDate.now().minusDays(i)));
+			mockStudents.add(new Student(i, "fname" + i, "lname" + i, i, LocalDate.now().minusDays(100+i)));
 		}
 
 		log.info("Loaded all students in momory db of size {}", mockStudents.size());
@@ -125,6 +125,16 @@ class InMemoryStudentService {
 	public List<Student> findAllStudents() {
 		log.info("Service findAllStudents ");
 		return mockStudents;
+	}
+	
+	public Student findStudentById(int id){
+		log.info("Service findStudentById ");
+		return queryInDb(id);
+	}
+
+	private Student queryInDb(int id) {
+		log.info("Service queryInDb {} ", id);
+		return mockStudents.stream().filter(s -> s.getStudentId() == id).findAny().orElse(null);
 	}
 
 }
@@ -142,6 +152,19 @@ class StudentController {
 	public List<Student> getAllStudents() {
 		log.info("Got getAllStudents request {}", studentReqCount.getAndIncrement());
 		return mockStudentService.findAllStudents();
+	}
+	
+	@GetMapping("/students/{id}")
+	public Student getStudentById(@PathVariable("id") int id) throws Exception {
+		log.info("Got getStudentById request {} for id {}", studentReqCount.getAndIncrement(), id);
+		Student foundStudent = mockStudentService.findStudentById(id);
+		if(foundStudent != null) {
+			log.info("Student is present ", foundStudent);
+			return foundStudent;
+		}else {
+			log.error("Student with id {} not found ", id);
+			throw new Exception("404 Student NOT FOUND with id " + id);
+		}
 	}
 }
 
