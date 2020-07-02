@@ -11,7 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +31,45 @@ public class SbRest1Application {
 }
 
 //-----
+//global error handling
 
+@ControllerAdvice
+class SbRest1GlobalExceptionHandler{
+	private static Logger log = LoggerFactory.getLogger(SbRest1GlobalExceptionHandler.class);
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<String> handleGlobalExceptions(Exception ex) {
+		log.error("In handleGlobalExceptions - Processing exception {}", ex.getMessage());
+		return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		
+	}
+	
+	@ExceptionHandler(StudentNotFoundException.class)
+	public ResponseEntity<String> handleStudentApiExceptions(StudentNotFoundException ex) {
+		log.error("In handleStudentApiExceptions - Processing exception {}", ex.getMessage());
+		return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+		
+	}
+}
+
+
+class StudentNotFoundException extends RuntimeException{
+	private static final long serialVersionUID = 1L;
+	
+	public StudentNotFoundException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
+	public StudentNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	public StudentNotFoundException(String message) {
+		super(message);
+	}
+	public StudentNotFoundException(Throwable cause) {
+		super(cause);
+	}
+}
 //domain
 class Student {
 	private static Logger log = LoggerFactory.getLogger(Student.class);
@@ -163,7 +205,8 @@ class StudentController {
 			return foundStudent;
 		}else {
 			log.error("Student with id {} not found ", id);
-			throw new Exception("404 Student NOT FOUND with id " + id);
+			//throw new Exception("404 Student NOT FOUND with id " + id);
+			throw new StudentNotFoundException("404 Student NOT FOUND with id " + id);
 		}
 	}
 }
